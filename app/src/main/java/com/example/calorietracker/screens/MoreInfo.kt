@@ -20,11 +20,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Groups
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
+
 import androidx.compose.material.icons.rounded.CalendarMonth
 import androidx.compose.material.icons.rounded.Height
-import androidx.compose.material.icons.rounded.Lock
+
 import androidx.compose.material.icons.rounded.Scale
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -32,8 +31,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MenuDefaults
+
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -48,23 +46,25 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
+
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
+
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.calorietracker.R
+import com.example.calorietracker.ROUTE_PROFILE
 import com.example.calorietracker.ui.theme.poppinsFontFamily
-//import java.time.format.TextStyle
+import com.google.firebase.firestore.FirebaseFirestore
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MoreInfoScreen(navController: NavController) {
+fun MoreInfoScreen(navController: NavController, userId: String) {
+
+    val db = FirebaseFirestore.getInstance()
 
     var expanded by remember { mutableStateOf(false) }
     val items = listOf("Male", "Female", "Others")
@@ -72,6 +72,7 @@ fun MoreInfoScreen(navController: NavController) {
     var dob by remember { mutableStateOf("") }
     var weight by remember { mutableStateOf("") }
     var height by remember { mutableStateOf("") }
+    var submitError by remember { mutableStateOf("") }
 
 
 
@@ -93,7 +94,7 @@ fun MoreInfoScreen(navController: NavController) {
                 contentDescription = "Blob",
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(250.dp)
+                    .height(290.dp)
                     .scale(1.5f)
                     .padding(top = 65.dp)
             )
@@ -103,7 +104,7 @@ fun MoreInfoScreen(navController: NavController) {
                 contentDescription = "Girl",
                 modifier = Modifier
                     .fillMaxWidth()
-                    .scale(2.5f)
+                    .scale(2.8f)
                     .padding(top = 40.dp)
             )
         }
@@ -116,7 +117,7 @@ fun MoreInfoScreen(navController: NavController) {
             modifier = Modifier
                 .fillMaxWidth()
                 .fillMaxHeight()
-                .padding(top = 30.dp)
+                .padding(top = 20.dp)
         ) {
             Text(
                 text = "Let's complete your profile",
@@ -180,7 +181,7 @@ fun MoreInfoScreen(navController: NavController) {
                 ExposedDropdownMenu(
                     expanded = expanded,
                     onDismissRequest = { expanded = false },
-                    modifier = Modifier.background(Color(0xFF3B4252),shape = RoundedCornerShape(0.dp)).wrapContentWidth()
+                    modifier = Modifier.background(Color(0xFF3B4252),shape = RoundedCornerShape(0.dp))
 
                 ) {
                     items.forEach { item ->
@@ -248,7 +249,7 @@ fun MoreInfoScreen(navController: NavController) {
 
 
                     shape = RoundedCornerShape(12.dp),
-                    modifier = Modifier.width(245.dp),
+                    modifier = Modifier.width(320.dp),
                     colors = TextFieldDefaults.colors(
                         focusedContainerColor = Color(0xFF3B4252), // Background when focused
                         unfocusedContainerColor = Color(0xFF3B4252), // Background when not focused
@@ -304,7 +305,7 @@ fun MoreInfoScreen(navController: NavController) {
 
 
                     shape = RoundedCornerShape(12.dp),
-                    modifier = Modifier.width(245.dp),
+                    modifier = Modifier.width(320.dp),
                     colors = TextFieldDefaults.colors(
                         focusedContainerColor = Color(0xFF3B4252), // Background when focused
                         unfocusedContainerColor = Color(0xFF3B4252), // Background when not focused
@@ -332,9 +333,38 @@ fun MoreInfoScreen(navController: NavController) {
                 }
             }
 
+            Text (
+                text = submitError,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
+                color = Color(0xFFBF616A),
+                fontFamily = poppinsFontFamily,
+                modifier = Modifier
+                    .padding(top = 15.dp)
+
+            )
+
             Button(
                 onClick = {
+                    if (selectedText.isNotEmpty() && weight.isNotEmpty() && dob.isNotEmpty() && height.isNotEmpty()) {
+                        val userMap = mapOf(
+                            "gender" to selectedText,
+                            "weight" to weight,
+                            "dob" to dob,
+                            "height" to height
+                        )
 
+                        db.collection("users").document(userId)
+                            .update(userMap)
+                            .addOnSuccessListener {
+                                navController.navigate("$ROUTE_PROFILE/$userId") // Redirect to profile after saving
+                            }
+                            .addOnFailureListener { e ->
+                                submitError = "Error: ${e.message}"
+                            }
+                    } else {
+                        submitError = "Please fill all fields!"
+                    }
                 },
 
                 contentPadding = PaddingValues(10.dp),
@@ -343,11 +373,11 @@ fun MoreInfoScreen(navController: NavController) {
                 ),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(140.dp)
-                    .padding(bottom = 60.dp)
+                    .height(100.dp)
+//                    .padding(bottom = 40.dp)
+                    .padding(top = 40.dp)
 
-
-                    .padding(horizontal = 20.dp)
+                    .padding(horizontal = 35.dp)
 
             ) {
                 Text(text = "Get Started", fontWeight = FontWeight.Bold, color = Color.White, fontFamily = poppinsFontFamily, fontSize = 17.sp)
@@ -359,9 +389,3 @@ fun MoreInfoScreen(navController: NavController) {
 }
 
 
-@Preview
-@Composable
-fun MoreInfoPreview () {
-    val fakeNav = rememberNavController()
-    MoreInfoScreen(fakeNav)
-}

@@ -16,6 +16,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.rounded.AccessibilityNew
 import androidx.compose.material.icons.rounded.AccountCircle
 import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material3.Button
@@ -47,6 +48,7 @@ import com.example.calorietracker.ROUTE_LOGIN
 import com.example.calorietracker.ROUTE_PROFILE
 import com.example.calorietracker.ui.theme.poppinsFontFamily
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 
 @Composable
 fun SignUpScreen(navController: NavController) {
@@ -56,7 +58,9 @@ fun SignUpScreen(navController: NavController) {
     var repassword by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false)}
     var passwordError by remember { mutableStateOf(" ") }
+    var username by remember { mutableStateOf("") }
     var auth: FirebaseAuth = FirebaseAuth.getInstance()
+    val db = FirebaseFirestore.getInstance()
 
 
     Column(
@@ -92,6 +96,32 @@ fun SignUpScreen(navController: NavController) {
 
         Spacer(modifier = Modifier.height(105.dp))
 
+
+        TextField(
+            value = username,
+            onValueChange = {username = it},
+            label = { Text(text = "Enter your username", fontWeight = FontWeight.Light, color = Color.Gray, fontFamily = poppinsFontFamily)},
+            leadingIcon = {
+                Icon( Icons.Rounded.AccessibilityNew,
+                    contentDescription = "Account Icon",
+                    tint = Color.White
+                )
+            },
+            shape = RoundedCornerShape(12.dp),
+            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp, horizontal = 20.dp),
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = Color(0xFF3B4252), // Background when focused
+                unfocusedContainerColor = Color(0xFF3B4252), // Background when not focused
+                cursorColor = Color.White, // Cursor color
+                focusedTextColor = Color.White, // Text color when focused
+                unfocusedTextColor = Color.White, // Text color when not focused,
+                focusedIndicatorColor = Color.Transparent, // Removes the bottom border when focused
+                unfocusedIndicatorColor = Color.Transparent // Removes the bottom border when not focused
+            ),
+
+            )
+
+
         TextField(
             value = email,
             onValueChange = {email = it},
@@ -103,7 +133,7 @@ fun SignUpScreen(navController: NavController) {
                 )
             },
             shape = RoundedCornerShape(12.dp),
-            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp, horizontal = 20.dp),
+            modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp, horizontal = 20.dp),
             colors = TextFieldDefaults.colors(
                 focusedContainerColor = Color(0xFF3B4252), // Background when focused
                 unfocusedContainerColor = Color(0xFF3B4252), // Background when not focused
@@ -215,23 +245,58 @@ fun SignUpScreen(navController: NavController) {
         Button(
             onClick = {
                 when {
+                    username.isBlank() -> passwordError = "Enter your username"
                     password != repassword -> passwordError = "Retype your password!"
                     password.length < 8 -> passwordError = "Your Password must be a minimum of 8 characters!"
                     else -> {
                         passwordError = "" // Clear any previous errors
-                        auth.createUserWithEmailAndPassword(email, password)
-                            .addOnCompleteListener { task ->
-                                if (task.isSuccessful) {
-                                    navController.navigate(ROUTE_INFO)
+
+                        val firestore = FirebaseFirestore.getInstance()
+                        val usersRef = firestore.collection("users")
+
+                        // Check if username already exists
+                        usersRef.whereEqualTo("username", username).get()
+                            .addOnSuccessListener { documents ->
+                                if (!documents.isEmpty) {
+                                    passwordError = "Username already exists!"
                                 } else {
-                                    passwordError = task.exception?.message ?: "Signup failed!"
+                                    // Proceed with signup
+                                    auth.createUserWithEmailAndPassword(email, password)
+                                        .addOnCompleteListener { task ->
+                                            if (task.isSuccessful) {
+                                                val userId = task.result?.user?.uid ?: ""
+
+                                                // Store username in Firestore
+                                                val userMap = hashMapOf(
+                                                    "userId" to userId,
+                                                    "username" to username,
+                                                    "email" to email
+                                                )
+
+                                                usersRef.document(userId).set(userMap)
+                                                    .addOnSuccessListener {
+                                                        navController.navigate("$ROUTE_INFO/$userId") // Navigate after successful Firestore save
+                                                    }
+                                                    .addOnFailureListener { e ->
+                                                        passwordError = e.message ?: "Failed to store username!"
+
+                                                        auth.currentUser?.delete()
+                                                    }
+                                            } else {
+                                                passwordError = task.exception?.message ?: "Signup failed!"
+                                            }
+                                        }
                                 }
+                            }
+                            .addOnFailureListener { e ->
+                                passwordError = e.message ?: "Error checking username!"
                             }
                     }
                 }
             },
 
-            contentPadding = PaddingValues(16.dp),
+
+                    contentPadding = PaddingValues(16.dp),
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color(0xFF4C566A)
             ),

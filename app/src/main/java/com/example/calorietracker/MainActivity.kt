@@ -64,10 +64,15 @@ const val ROUTE_PROFILE = "profile"
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        FirebaseApp.initializeApp(this)
         val auth = FirebaseAuth.getInstance()
         val currentUser = auth.currentUser
-        FirebaseApp.initializeApp(this)
-        val startDestination = if (currentUser != null) ROUTE_PROFILE else ROUTE_WELCOME
+
+        val startDestination = if (currentUser != null) {
+            "$ROUTE_PROFILE/${currentUser.uid}" // ✅ Pass the user ID to profile
+        } else {
+            ROUTE_WELCOME
+        }
         enableEdgeToEdge()
         setContent {
             CalorieTrackerTheme {
@@ -89,11 +94,13 @@ class MainActivity : ComponentActivity() {
                            composable(ROUTE_LOGIN) {
                                LoginScreen(navController)
                            }
-                           composable(ROUTE_INFO) {
-                               MoreInfoScreen(navController)
+                           composable("$ROUTE_INFO/{userId}") { backStackEntry ->
+                               val userId = backStackEntry.arguments?.getString("userId") ?: ""
+                               MoreInfoScreen(navController, userId)
                            }
-                           composable(ROUTE_PROFILE) {
-                               ProfileScreen()
+                           composable("$ROUTE_PROFILE/{userId}") { backStackEntry ->
+                               val userId = backStackEntry.arguments?.getString("userId") ?: ""
+                               ProfileScreen(navController, userId)
                            }
 
                        }

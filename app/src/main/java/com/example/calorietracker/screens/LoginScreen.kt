@@ -51,7 +51,7 @@ import com.google.firebase.auth.FirebaseAuth
 @Composable
 fun LoginScreen(navController: NavController) {
 
-    var username by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
     var loginError by remember { mutableStateOf("") }
@@ -88,9 +88,9 @@ fun LoginScreen(navController: NavController) {
         Spacer(modifier = Modifier.height(50.dp))
 
         TextField(
-            value = username,
-            onValueChange = {username = it},
-            label = { Text(text = "Enter your username", fontWeight = FontWeight.Light, color = Color.Gray, fontFamily = poppinsFontFamily)},
+            value = email,
+            onValueChange = {email = it},
+            label = { Text(text = "Enter your email", fontWeight = FontWeight.Light, color = Color.Gray, fontFamily = poppinsFontFamily)},
             leadingIcon = {
                 Icon( Icons.Rounded.AccountCircle,
                     contentDescription = "Account Icon",
@@ -159,10 +159,11 @@ fun LoginScreen(navController: NavController) {
 
         Button(
             onClick = {
-                auth.signInWithEmailAndPassword(username, password)
+                auth.signInWithEmailAndPassword(email, password)
                     .addOnCompleteListener { task ->
                         if (task.isSuccessful) {
-                            navController.navigate(ROUTE_PROFILE)
+                            val userId = auth.currentUser?.uid
+                            navController.navigate("$ROUTE_PROFILE/$userId")
                         } else {
                             loginError = task.exception?.message ?: "Login failed!"
                         }
