@@ -55,6 +55,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.calorietracker.R
+import com.example.calorietracker.ROUTE_HOME
 import com.example.calorietracker.ROUTE_PROFILE
 import com.example.calorietracker.ui.theme.poppinsFontFamily
 import com.google.firebase.firestore.FirebaseFirestore
@@ -357,7 +358,7 @@ fun MoreInfoScreen(navController: NavController, userId: String) {
                         db.collection("users").document(userId)
                             .update(userMap)
                             .addOnSuccessListener {
-                                navController.navigate("$ROUTE_PROFILE/$userId") // Redirect to profile after saving
+                                navController.navigate("$ROUTE_HOME/$userId") // Redirect to profile after saving
                             }
                             .addOnFailureListener { e ->
                                 submitError = "Error: ${e.message}"

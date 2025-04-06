@@ -47,8 +47,11 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.example.calorietracker.screens.HomePage
 import com.example.calorietracker.screens.LoginScreen
+import com.example.calorietracker.screens.Meals
 import com.example.calorietracker.screens.MoreInfoScreen
+import com.example.calorietracker.screens.PredefinedMeals
 import com.example.calorietracker.screens.ProfileScreen
 import com.example.calorietracker.screens.SignUpScreen
 import com.example.calorietracker.ui.theme.poppinsFontFamily
@@ -60,6 +63,9 @@ const val ROUTE_SIGNUP = "signup"
 const val ROUTE_LOGIN = "login"
 const val ROUTE_INFO = "info"
 const val ROUTE_PROFILE = "profile"
+const val ROUTE_HOME = "home"
+const val ROUTE_MEALS = "meals"
+const val ROUTE_PREDEFINED = "predefined"
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -69,7 +75,7 @@ class MainActivity : ComponentActivity() {
         val currentUser = auth.currentUser
 
         val startDestination = if (currentUser != null) {
-            "$ROUTE_PROFILE/${currentUser.uid}" // ✅ Pass the user ID to profile
+            "$ROUTE_HOME/${currentUser.uid}"
         } else {
             ROUTE_WELCOME
         }
@@ -101,6 +107,20 @@ class MainActivity : ComponentActivity() {
                            composable("$ROUTE_PROFILE/{userId}") { backStackEntry ->
                                val userId = backStackEntry.arguments?.getString("userId") ?: ""
                                ProfileScreen(navController, userId)
+                           }
+                           composable("$ROUTE_HOME/{userId}") {
+                               backStackEntry ->
+                               val userId = backStackEntry.arguments?.getString("userId") ?: ""
+                               HomePage(navController, userId)
+                           }
+                           composable("$ROUTE_MEALS/{userId}"){
+                               backStackEntry ->
+                               val userId = backStackEntry.arguments?.getString("userId") ?: ""
+                               Meals(navController, userId)
+                           }
+
+                           composable(ROUTE_PREDEFINED) {
+                               PredefinedMeals()
                            }
 
                        }

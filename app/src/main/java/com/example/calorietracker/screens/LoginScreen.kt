@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.example.calorietracker.ROUTE_HOME
 import com.example.calorietracker.ROUTE_PROFILE
 import com.example.calorietracker.ROUTE_SIGNUP
 import com.example.calorietracker.ui.theme.poppinsFontFamily
@@ -163,7 +164,7 @@ fun LoginScreen(navController: NavController) {
                     .addOnCompleteListener { task ->
                         if (task.isSuccessful) {
                             val userId = auth.currentUser?.uid
-                            navController.navigate("$ROUTE_PROFILE/$userId")
+                            navController.navigate("$ROUTE_HOME/$userId")
                         } else {
                             loginError = task.exception?.message ?: "Login failed!"
                         }
