@@ -73,20 +73,32 @@ fun PredefinedMealsList(
             .padding(16.dp)
     ) {
         items(meals) { meal ->
-            Row(
+            Box(
                 modifier = Modifier
+                    .padding(bottom = 15.dp)
+                    .clip(RoundedCornerShape(10.dp))
                     .fillMaxWidth()
-                    .clickable { onMealSelected(meal)
-                        Log.d("SelectedMeal", "Meal selected: $meal")
-                        Toast.makeText(context, "Meal logged successfully!", Toast.LENGTH_SHORT).show()
-                    }
-                    .padding(12.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
+                    .background(Color(0xFF4C566A))
             ) {
-                Text(text = meal.name, style = MaterialTheme.typography.bodyLarge)
-                Text(text = "${meal.calories} kcal", style = MaterialTheme.typography.bodyMedium)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onMealSelected(meal)
+                            Log.d("SelectedMeal", "Meal selected: $meal")
+                            Toast.makeText(context, "Meal logged successfully!", Toast.LENGTH_SHORT).show()
+                        }
+                        .background(Color(0xFF434D66))
+                        .padding(22.dp)
+                    ,
+
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(text = meal.name, style = MaterialTheme.typography.bodyLarge, fontSize = 22.sp, color = Color.White)
+                    Text(text = "${meal.calories} kcal", style = MaterialTheme.typography.bodyMedium, fontSize = 20.sp, color = Color.White)
+                }
             }
-            Divider()
+
+
         }
     }
 }
@@ -104,10 +116,11 @@ fun PredefinedMeals() {
         Text(
             text = "Predefined Meals",
             color = Color.White,
-            modifier = Modifier.padding(top = 30.dp),
+            modifier = Modifier.padding(top = 30.dp, bottom = 30.dp),
             fontFamily = poppinsFontFamily,
             fontWeight = androidx.compose.ui.text.font.FontWeight.Black,
-            fontSize = 25.sp
+            fontSize = 25.sp,
+
         )
 
 //        Column(

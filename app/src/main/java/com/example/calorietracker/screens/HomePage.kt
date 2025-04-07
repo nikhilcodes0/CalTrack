@@ -36,6 +36,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -170,7 +171,7 @@ fun HomePage(navController: NavController, userId: String) {
         modifier = Modifier
             .background(Color(0xFF2E3440))
             .fillMaxSize()
-            .padding(28.dp, 28.dp)
+            .padding(28.dp, 38.dp)
 
     ) {
         Text(
@@ -179,7 +180,7 @@ fun HomePage(navController: NavController, userId: String) {
             modifier = Modifier.padding(bottom = 10.dp),
             color = Color.Gray,
             fontWeight = FontWeight.Black,
-            fontSize = 14.sp
+            fontSize = 25.sp
         )
 
         Text(
@@ -187,12 +188,12 @@ fun HomePage(navController: NavController, userId: String) {
             color = Color.White,
             fontFamily = poppinsFontFamily,
             fontWeight = FontWeight.Black,
-            fontSize = 22.sp,
+            fontSize = 35.sp,
             modifier = Modifier.padding(bottom = 22.dp)
         )
 
         Box(
-            modifier = Modifier.shadow(15.dp, RoundedCornerShape(16.dp),ambientColor = Color(0xFF6F7787),spotColor = Color(0xFF6F7787)).fillMaxWidth().background(Color(0xFF4C566A)).padding(16.dp)
+            modifier = Modifier.shadow(15.dp, RoundedCornerShape(16.dp),ambientColor = Color(0xFF6F7787),spotColor = Color(0xFF6F7787)).fillMaxWidth().background(Color(0xFF4C566A)).padding(20.dp)
 
         ) {
             Row (
@@ -206,7 +207,8 @@ fun HomePage(navController: NavController, userId: String) {
                         text = "BMI (Body Mass Index)",
                         color = Color.White,
                         fontFamily = poppinsFontFamily,
-                        fontWeight = FontWeight.Black
+                        fontWeight = FontWeight.Black,
+                        fontSize = 20.sp
                     )
 
                     Text (
@@ -214,12 +216,12 @@ fun HomePage(navController: NavController, userId: String) {
                         color = Color.LightGray,
                         fontFamily = poppinsFontFamily,
                         fontWeight = FontWeight.Black,
-                        fontSize = 10.sp,
+                        fontSize = 15.sp,
                         modifier = Modifier.padding(top = 6.dp)
                     )
                 }
 
-                BMIPieChart(bmi = bmi, modifier = Modifier.padding(start = 40.dp))
+                BMIPieChart(bmi = bmi, modifier = Modifier.padding(start = 70.dp))
 
             }
         }
@@ -310,5 +312,11 @@ fun HomePage(navController: NavController, userId: String) {
         }
 
     }
+}
+
+@Preview
+@Composable
+fun HomePagePreview() {
+    HomePage(navController = NavController(LocalContext.current), userId = "123")
 }
 

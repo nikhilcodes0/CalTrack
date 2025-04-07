@@ -54,6 +54,7 @@ import com.example.calorietracker.screens.MoreInfoScreen
 import com.example.calorietracker.screens.PredefinedMeals
 import com.example.calorietracker.screens.ProfileScreen
 import com.example.calorietracker.screens.SignUpScreen
+import com.example.calorietracker.screens.UserMeals
 import com.example.calorietracker.ui.theme.poppinsFontFamily
 import com.google.firebase.FirebaseApp
 
@@ -66,6 +67,7 @@ const val ROUTE_PROFILE = "profile"
 const val ROUTE_HOME = "home"
 const val ROUTE_MEALS = "meals"
 const val ROUTE_PREDEFINED = "predefined"
+const val ROUTE_USERMEALS = "usermeals"
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -121,6 +123,10 @@ class MainActivity : ComponentActivity() {
 
                            composable(ROUTE_PREDEFINED) {
                                PredefinedMeals()
+                           }
+
+                           composable(ROUTE_USERMEALS) {
+                               UserMeals()
                            }
 
                        }

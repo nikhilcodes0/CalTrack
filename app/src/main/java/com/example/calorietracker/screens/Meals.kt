@@ -21,6 +21,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.paint
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -28,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.calorietracker.ROUTE_PREDEFINED
+import com.example.calorietracker.ROUTE_USERMEALS
 import com.example.calorietracker.ui.theme.poppinsFontFamily
 
 @Composable
@@ -90,6 +92,9 @@ fun Meals(navController: NavController, userId: String) {
         Box (
             modifier = Modifier
                 .clip(RoundedCornerShape(10.dp))
+                .clickable{
+                    navController.navigate(ROUTE_USERMEALS)
+                }
                 .width(250.dp)
                 .height(150.dp)
                 .background(Color(0xFF4C566A))
@@ -117,5 +122,11 @@ fun Meals(navController: NavController, userId: String) {
             }
         }
     }
+}
+
+@Preview
+@Composable
+fun MealsPreview() {
+    Meals(navController = NavController(LocalContext.current), userId = "123")
 }
 
