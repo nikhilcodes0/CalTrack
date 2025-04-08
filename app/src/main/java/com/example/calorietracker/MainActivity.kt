@@ -7,6 +7,8 @@ import android.os.Bundle
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import androidx.activity.ComponentActivity
+import androidx.compose.runtime.getValue
+
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 
@@ -47,6 +49,8 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import com.example.calorietracker.screens.BottomNavBar
 import com.example.calorietracker.screens.HomePage
 import com.example.calorietracker.screens.LoginScreen
 import com.example.calorietracker.screens.Meals
@@ -85,57 +89,56 @@ class MainActivity : ComponentActivity() {
         setContent {
             CalorieTrackerTheme {
                 val navController = rememberNavController()
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                   NavHost(
-                       navController = navController,
-                       startDestination = startDestination,
-                       modifier = Modifier.padding(innerPadding),
-                       builder = {
-                           composable(ROUTE_SIGNUP) {
-                               SignUpScreen(navController)
-                           }
+                val currentBackStackEntry by navController.currentBackStackEntryAsState()
+                val currentDestination = currentBackStackEntry?.destination?.route
 
-                           composable(ROUTE_WELCOME) {
-                               WelcomeScreen(innerPadding, navController)
-                           }
+                val showBottomBar = currentDestination?.startsWith(ROUTE_HOME) == true ||
+                        currentDestination?.startsWith(ROUTE_PROFILE) == true ||
+                        currentDestination?.startsWith(ROUTE_MEALS) == true
 
-                           composable(ROUTE_LOGIN) {
-                               LoginScreen(navController)
-                           }
-                           composable("$ROUTE_INFO/{userId}") { backStackEntry ->
-                               val userId = backStackEntry.arguments?.getString("userId") ?: ""
-                               MoreInfoScreen(navController, userId)
-                           }
-                           composable("$ROUTE_PROFILE/{userId}") { backStackEntry ->
-                               val userId = backStackEntry.arguments?.getString("userId") ?: ""
-                               ProfileScreen(navController, userId)
-                           }
-                           composable("$ROUTE_HOME/{userId}") {
-                               backStackEntry ->
-                               val userId = backStackEntry.arguments?.getString("userId") ?: ""
-                               HomePage(navController, userId)
-                           }
-                           composable("$ROUTE_MEALS/{userId}"){
-                               backStackEntry ->
-                               val userId = backStackEntry.arguments?.getString("userId") ?: ""
-                               Meals(navController, userId)
-                           }
-
-                           composable(ROUTE_PREDEFINED) {
-                               PredefinedMeals()
-                           }
-
-                           composable(ROUTE_USERMEALS) {
-                               UserMeals()
-                           }
-
-                       }
-                   )
+                Scaffold(
+                    bottomBar = {
+                        if (showBottomBar) {
+                            BottomNavBar(navController)
+                        }
+                    },
+                    modifier = Modifier.fillMaxSize()
+                ) { innerPadding ->
+                    NavHost(
+                        navController = navController,
+                        startDestination = startDestination,
+                        modifier = Modifier.padding(innerPadding)
+                    ) {
+                        composable(ROUTE_SIGNUP) { SignUpScreen(navController) }
+                        composable(ROUTE_WELCOME) { WelcomeScreen(innerPadding, navController) }
+                        composable(ROUTE_LOGIN) { LoginScreen(navController) }
+                        composable("$ROUTE_INFO/{userId}") {
+                            val userId = it.arguments?.getString("userId") ?: ""
+                            MoreInfoScreen(navController, userId)
+                        }
+                        composable("$ROUTE_PROFILE/{userId}") {
+                            val userId = it.arguments?.getString("userId") ?: ""
+                            ProfileScreen(navController, userId)
+                        }
+                        composable("$ROUTE_HOME/{userId}") {
+                            val userId = it.arguments?.getString("userId") ?: ""
+                            HomePage(navController, userId)
+                        }
+                        composable("$ROUTE_MEALS/{userId}") {
+                            val userId = it.arguments?.getString("userId") ?: ""
+                            Meals(navController, userId)
+                        }
+                        composable(ROUTE_PREDEFINED) { PredefinedMeals() }
+                        composable(ROUTE_USERMEALS) { UserMeals() }
+                    }
                 }
             }
         }
+
     }
 }
+
+
 
 
 

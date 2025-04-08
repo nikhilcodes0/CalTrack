@@ -58,6 +58,9 @@ fun BMIPieChart(bmi: Float, modifier: Modifier = Modifier) {
     val total = 100f // Max BMI scale
     val bmiPercentage = (bmi / total).coerceIn(0f, 1f)
     val bmiAngle = bmiPercentage * 360f
+    bmi.let {
+        Log.d("BMI_CHECK", it.toString())
+    }
 
     Box(
         contentAlignment = Alignment.Center,
@@ -100,11 +103,16 @@ fun BMIPieChart(bmi: Float, modifier: Modifier = Modifier) {
 
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
 //            Text("BMI", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
-            Text(String.format("%.1f", bmi), fontSize = 15.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 55.dp, start = 45.dp), color = Color.White)
+            Text(
+                String.format("%.1f", bmi),
+                fontSize = 15.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(bottom = 55.dp, start = 45.dp),
+                color = Color.White
+            )
         }
     }
 }
-
 
 
 @Composable
@@ -113,7 +121,7 @@ fun HomePage(navController: NavController, userId: String) {
     val firestore = FirebaseFirestore.getInstance()
     val db = FirebaseFirestore.getInstance()
     val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
-    if(currentUserId == null){
+    if (currentUserId == null) {
         return@HomePage
     }
     var progress by remember { mutableFloatStateOf(0f) }
@@ -146,12 +154,21 @@ fun HomePage(navController: NavController, userId: String) {
 
     var userData by remember { mutableStateOf<Map<String, Any>?>(null) }
     var error by remember { mutableStateOf<String?>(null) }
+    var bmi by remember { mutableStateOf<Float?>(null) }
     LaunchedEffect(currentUserId) {
         if (currentUserId.isNotEmpty()) {
             firestore.collection("users").document(userId).get()
                 .addOnSuccessListener { document ->
                     if (document.exists()) {
                         userData = document.data
+                        val weight = (userData?.get("weight") as? Number)?.toFloat() ?: 0f
+                        val heightCm = (userData?.get("height") as? Number)?.toFloat() ?: 0f
+                        Log.d("BMI_CALC", "Weight: $weight, Height: $heightCm")
+
+
+
+
+
 
                     } else {
                         error = "User data not found!"
@@ -165,9 +182,9 @@ fun HomePage(navController: NavController, userId: String) {
         }
     }
 
-    val bmi = 25.5f // Replace with the actual BMI value
 
-    Column (
+
+    Column(
         modifier = Modifier
             .background(Color(0xFF2E3440))
             .fillMaxSize()
@@ -193,13 +210,22 @@ fun HomePage(navController: NavController, userId: String) {
         )
 
         Box(
-            modifier = Modifier.shadow(15.dp, RoundedCornerShape(16.dp),ambientColor = Color(0xFF6F7787),spotColor = Color(0xFF6F7787)).fillMaxWidth().background(Color(0xFF4C566A)).padding(20.dp)
+            modifier = Modifier
+                .shadow(
+                    15.dp,
+                    RoundedCornerShape(16.dp),
+                    ambientColor = Color(0xFF6F7787),
+                    spotColor = Color(0xFF6F7787)
+                )
+                .fillMaxWidth()
+                .background(Color(0xFF4C566A))
+                .padding(20.dp)
 
         ) {
-            Row (
+            Row(
 
             ) {
-                Column (
+                Column(
                     modifier = Modifier
                         .padding(top = 30.dp)
                 ) {
@@ -211,7 +237,7 @@ fun HomePage(navController: NavController, userId: String) {
                         fontSize = 20.sp
                     )
 
-                    Text (
+                    Text(
                         text = "You have a normal weight",
                         color = Color.LightGray,
                         fontFamily = poppinsFontFamily,
@@ -221,15 +247,22 @@ fun HomePage(navController: NavController, userId: String) {
                     )
                 }
 
-                BMIPieChart(bmi = bmi, modifier = Modifier.padding(start = 70.dp))
+
+                val bmi = 25.7f
+                BMIPieChart(bmi = bmi, modifier = Modifier.padding(start = 60.dp))
+
 
             }
         }
 
         Spacer(modifier = Modifier.height(23.dp))
-        
+
         Box(
-            modifier = Modifier.clip(RoundedCornerShape(10.dp)).background(Color(0xFF4C566A)).fillMaxWidth().padding(20.dp)
+            modifier = Modifier
+                .clip(RoundedCornerShape(10.dp))
+                .background(Color(0xFF4C566A))
+                .fillMaxWidth()
+                .padding(20.dp)
         ) {
             Row(
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -243,7 +276,7 @@ fun HomePage(navController: NavController, userId: String) {
                     color = Color.White,
                     fontSize = 17.sp,
 
-                )
+                    )
 
                 Button(
                     onClick = {
@@ -278,7 +311,11 @@ fun HomePage(navController: NavController, userId: String) {
         )
 
         Box(
-            modifier = Modifier.clip(RoundedCornerShape(10.dp)).background(Color(0xFF4C566A)).fillMaxWidth().padding(20.dp)
+            modifier = Modifier
+                .clip(RoundedCornerShape(10.dp))
+                .background(Color(0xFF4C566A))
+                .fillMaxWidth()
+                .padding(20.dp)
         ) {
             Column {
                 Text(

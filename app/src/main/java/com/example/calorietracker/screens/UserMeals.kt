@@ -16,11 +16,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -44,13 +47,17 @@ data class UserMeal(
 )
 
 
+
+
 @Composable
 fun UserMealsList(
-    onMealSelected: (UserMeal) -> Unit
+    onMealSelected: (UserMeal) -> Unit,
+    onAddMealClicked: () -> Unit
 ) {
     val usermeals = remember { mutableStateListOf<UserMeal>() }
     val context = LocalContext.current
     val userId = FirebaseAuth.getInstance().currentUser?.uid
+
 
     LaunchedEffect(Unit) {
         if (userId != null) {
@@ -122,6 +129,7 @@ fun UserMealsList(
                         shape = RoundedCornerShape(10.dp)
                     )
                     .clickable {
+                        onAddMealClicked()
                         // Handle click - e.g., navigate to custom meal entry screen
                     }
                     .padding(16.dp)
@@ -131,12 +139,92 @@ fun UserMealsList(
                     fontSize = 20.sp,
                     color = Color.White,
                     style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.align(Alignment.Center)
+                    modifier = Modifier.align(Alignment.Center),
+
                 )
             }
         }
     }
 }
+
+@Composable
+fun AddCustomMealDialog(
+    onDismiss: () -> Unit
+) {
+    val context = LocalContext.current
+    val mealName = remember { mutableStateOf("") }
+    val calories = remember { mutableStateOf("") }
+
+    AlertDialog(
+        onDismissRequest = { onDismiss() },
+        title = {
+            Text(text = "Add Custom Meal", fontSize = 20.sp)
+        },
+        text = {
+            Column {
+                OutlinedTextField(
+                    value = mealName.value,
+                    onValueChange = { mealName.value = it },
+                    label = { Text("Meal Name") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = calories.value,
+                    onValueChange = { calories.value = it },
+                    label = { Text("Calories") },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp),
+                    singleLine = true
+                )
+            }
+        },
+        confirmButton = {
+            Text(
+                "Submit",
+                modifier = Modifier
+                    .clickable {
+                        val name = mealName.value.trim()
+                        val cal = calories.value.toIntOrNull() ?: 0
+                        val userId = FirebaseAuth.getInstance().currentUser?.uid
+
+                        if (name.isNotEmpty() && cal > 0 && userId != null) {
+                            val mealData = mapOf(
+                                "name" to name,
+                                "calories" to cal,
+                                "timestamp" to System.currentTimeMillis()
+                            )
+                            FirebaseFirestore.getInstance()
+                                .collection("users").document(userId)
+                                .collection("user_meals")
+                                .add(mealData)
+                                .addOnSuccessListener {
+                                    Toast.makeText(context, "Meal added!", Toast.LENGTH_SHORT).show()
+                                    onDismiss()
+                                }
+                        } else {
+                            Toast.makeText(context, "Please enter valid data", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                    .padding(8.dp),
+                color = MaterialTheme.colorScheme.primary
+            )
+        },
+        dismissButton = {
+            Text(
+                "Cancel",
+                modifier = Modifier
+                    .clickable { onDismiss() }
+                    .padding(8.dp),
+                color = MaterialTheme.colorScheme.secondary
+            )
+        },
+        containerColor = Color(0xFF3B4252),
+        titleContentColor = Color.White,
+        textContentColor = Color.White
+    )
+}
+
 
 
 
@@ -145,6 +233,10 @@ fun UserMealsList(
 
 @Composable
 fun UserMeals() {
+    val showDialog = remember { mutableStateOf(false) }
+
+
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -164,25 +256,40 @@ fun UserMeals() {
         )
         Spacer(modifier = Modifier.padding(5.dp))
 
-        UserMealsList { selectedMeal ->
-            val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return@UserMealsList
-            val db = FirebaseFirestore.getInstance()
+        UserMealsList(
+            onMealSelected = { selectedMeal ->
+                val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return@UserMealsList
+                val db = FirebaseFirestore.getInstance()
 
-            val mealData = mapOf(
-                "name" to selectedMeal.name,
-                "calories" to selectedMeal.calories,
-                "timestamp" to System.currentTimeMillis()
+                val mealData = mapOf(
+                    "name" to selectedMeal.name,
+                    "calories" to selectedMeal.calories,
+                    "timestamp" to System.currentTimeMillis()
+                )
+
+                db.collection("users").document(userId)
+                    .collection("logged_meals")
+                    .add(mealData)
+            },
+            onAddMealClicked = {
+                showDialog.value = true // ← Open the dialog
+            }
+        )
+
+        if (showDialog.value) {
+            AddCustomMealDialog(
+                onDismiss = { showDialog.value = false }
             )
-
-            db.collection("users").document(userId)
-                .collection("logged_meals")
-                .add(mealData)
         }
+
+
 
 
 
     }
 }
+
+
 
 @Preview
 @Composable
