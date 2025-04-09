@@ -22,6 +22,7 @@ import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Groups
 
 import androidx.compose.material.icons.rounded.CalendarMonth
+import androidx.compose.material.icons.rounded.CrisisAlert
 import androidx.compose.material.icons.rounded.Height
 
 import androidx.compose.material.icons.rounded.Scale
@@ -37,6 +38,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -73,6 +75,7 @@ fun MoreInfoScreen(navController: NavController, userId: String) {
     var dob by remember { mutableStateOf("") }
     var weight by remember { mutableStateOf("") }
     var height by remember { mutableStateOf("") }
+    var calories by remember { mutableStateOf("") }
     var submitError by remember { mutableStateOf("") }
 
 
@@ -96,7 +99,7 @@ fun MoreInfoScreen(navController: NavController, userId: String) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(290.dp)
-                    .scale(1.5f)
+                    .scale(1.1f)
                     .padding(top = 65.dp)
             )
 
@@ -105,12 +108,12 @@ fun MoreInfoScreen(navController: NavController, userId: String) {
                 contentDescription = "Girl",
                 modifier = Modifier
                     .fillMaxWidth()
-                    .scale(2.8f)
+                    .scale(2.2f)
                     .padding(top = 40.dp)
             )
         }
 
-        Spacer(modifier = Modifier.height(110.dp))
+        Spacer(modifier = Modifier.height(80.dp))
 
 
         Column(
@@ -118,7 +121,7 @@ fun MoreInfoScreen(navController: NavController, userId: String) {
             modifier = Modifier
                 .fillMaxWidth()
                 .fillMaxHeight()
-                .padding(top = 20.dp)
+                .padding(top = 0.dp)
         ) {
             Text(
                 text = "Let's complete your profile",
@@ -334,6 +337,62 @@ fun MoreInfoScreen(navController: NavController, userId: String) {
                 }
             }
 
+            Row(
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth().padding(35.dp, 0.dp)
+
+            ) {
+                TextField(
+                    value = calories,
+                    onValueChange = { calories = it },
+                    label = {
+                        Text(
+                            text = "Enter your daily calories goal",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Light,
+                            color = Color.Gray,
+                            fontFamily = poppinsFontFamily
+                        )
+                    },
+                    leadingIcon = {
+                        Icon(
+                            Icons.Rounded.CrisisAlert,
+                            contentDescription = "DOB",
+                            tint = Color.Gray
+                        )
+                    },
+
+
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.width(320.dp),
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color(0xFF3B4252), // Background when focused
+                        unfocusedContainerColor = Color(0xFF3B4252), // Background when not focused
+                        cursorColor = Color.White, // Cursor color
+                        focusedTextColor = Color.White, // Text color when focused
+                        unfocusedTextColor = Color.White, // Text color when not focused,
+                        focusedIndicatorColor = Color.Transparent, // Removes the bottom border when focused
+                        unfocusedIndicatorColor = Color.Transparent // Removes the bottom border when not focused
+                    ),
+
+                    )
+
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(12.dp)) // Apply rounded corners
+                        .background(Color(0xFF3B4252)) // Same background as TextField
+                        .padding(17.dp) // Padding inside the shape
+                ) {
+                    Text(
+                        text = "kCal",
+                        fontFamily = poppinsFontFamily,
+                        fontWeight = FontWeight.Black,
+                        color = Color.White
+                    )
+                }
+            }
+
             Text (
                 text = submitError,
                 fontSize = 14.sp,
@@ -352,7 +411,8 @@ fun MoreInfoScreen(navController: NavController, userId: String) {
                             "gender" to selectedText,
                             "weight" to weight,
                             "dob" to dob,
-                            "height" to height
+                            "height" to height,
+                            "calories" to calories
                         )
 
                         db.collection("users").document(userId)
@@ -387,6 +447,13 @@ fun MoreInfoScreen(navController: NavController, userId: String) {
         }
 
     }
+}
+
+
+@Preview
+@Composable
+fun MoreInfoScreenPreview() {
+    MoreInfoScreen(navController = rememberNavController(), userId = "123")
 }
 
 

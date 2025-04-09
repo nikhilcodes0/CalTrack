@@ -124,6 +124,8 @@ fun HomePage(navController: NavController, userId: String) {
     if (currentUserId == null) {
         return@HomePage
     }
+    var goal by remember { mutableFloatStateOf(2000f) }
+
     var progress by remember { mutableFloatStateOf(0f) }
 
 // Get today's start timestamp
@@ -146,7 +148,6 @@ fun HomePage(navController: NavController, userId: String) {
                     totalCalories += (doc.getLong("calories") ?: 0L).toInt()
                 }
 
-                val goal = 2000f
                 progress = (totalCalories / goal).coerceIn(0f, 1f) // Safe clamp between 0 and 1
             }
     }
@@ -155,6 +156,7 @@ fun HomePage(navController: NavController, userId: String) {
     var userData by remember { mutableStateOf<Map<String, Any>?>(null) }
     var error by remember { mutableStateOf<String?>(null) }
     var bmi by remember { mutableStateOf<Float?>(null) }
+    var calories by remember { mutableStateOf<String?>(null) }
     LaunchedEffect(currentUserId) {
         if (currentUserId.isNotEmpty()) {
             firestore.collection("users").document(userId).get()
@@ -164,7 +166,9 @@ fun HomePage(navController: NavController, userId: String) {
                         val weight = (userData?.get("weight") as? Number)?.toFloat() ?: 0f
                         val heightCm = (userData?.get("height") as? Number)?.toFloat() ?: 0f
                         Log.d("BMI_CALC", "Weight: $weight, Height: $heightCm")
-
+                        val caloriesString = userData?.get("calories") as? String
+                        val caloriesGoal = caloriesString?.toFloatOrNull() ?: 2000f
+                        goal = caloriesGoal
 
 
 
@@ -327,7 +331,7 @@ fun HomePage(navController: NavController, userId: String) {
                     modifier = Modifier.padding(bottom = 2.dp)
                 )
                 Text(
-                    text = "${(progress * 2000).toInt()} / 2000 kCal",
+                    text = "${(progress * goal).toInt()} / ${goal.toInt()} kCal",
                     fontFamily = poppinsFontFamily,
                     fontWeight = FontWeight.Black,
                     color = Color(0xFF92A3FD),

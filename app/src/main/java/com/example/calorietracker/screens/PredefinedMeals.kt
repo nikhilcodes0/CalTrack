@@ -37,6 +37,14 @@ import com.example.calorietracker.R
 import com.example.calorietracker.ui.theme.poppinsFontFamily
 import com.google.firebase.auth.FirebaseAuth
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import com.google.firebase.firestore.FirebaseFirestore
 
@@ -85,7 +93,7 @@ fun PredefinedMealsList(
                         .fillMaxWidth()
                         .clickable { onMealSelected(meal)
                             Log.d("SelectedMeal", "Meal selected: $meal")
-                            Toast.makeText(context, "Meal logged successfully!", Toast.LENGTH_SHORT).show()
+
                         }
                         .background(Color(0xFF434D66))
                         .padding(22.dp)
@@ -103,9 +111,68 @@ fun PredefinedMealsList(
     }
 }
 
+@Composable
+fun LogMealDialog(
+    meal: PredefinedMeal,
+    onDismiss: () -> Unit,
+    onSubmit: (Int) -> Unit
+) {
+    val gramsInput = remember { mutableStateOf("") }
+
+    AlertDialog(
+        onDismissRequest = { onDismiss() },
+        title = { Text(text = "Log Meal", fontSize = 20.sp) },
+        text = {
+            Column {
+                Text(text = "How much ${meal.name} did you eat (in grams)?")
+                OutlinedTextField(
+                    value = gramsInput.value,
+                    onValueChange = { gramsInput.value = it },
+                    label = { Text("Grams") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
+            }
+        },
+        confirmButton = {
+            Text(
+                "Submit",
+                modifier = Modifier
+                    .clickable {
+                        val grams = gramsInput.value.toIntOrNull()
+                        if (grams != null && grams > 0) {
+                            onSubmit(grams)
+
+                            onDismiss()
+                        }
+                    }
+                    .padding(8.dp),
+                color = MaterialTheme.colorScheme.primary
+            )
+        },
+        dismissButton = {
+            Text(
+                "Cancel",
+                modifier = Modifier
+                    .clickable { onDismiss() }
+                    .padding(8.dp),
+                color = MaterialTheme.colorScheme.secondary
+            )
+        },
+        containerColor = Color(0xFF3B4252),
+        titleContentColor = Color.White,
+        textContentColor = Color.White
+    )
+}
+
+
 
 @Composable
 fun PredefinedMeals() {
+    val selectedMeal = remember { mutableStateOf<PredefinedMeal?>(null) }
+    val showDialog = remember { mutableStateOf(false) }
+
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -123,58 +190,35 @@ fun PredefinedMeals() {
 
         )
 
-//        Column(
-//            modifier = Modifier
-//                .padding(top = 30.dp)
-//                .fillMaxWidth()
-//
-//        ) {
-//            Box (
-//                modifier = Modifier
-//                    .clip(RoundedCornerShape(10.dp))
-//                    .fillMaxWidth()
-//                    .background(Color(0xFF4C566A)),
-//            ) {
-//                Row(
-//                    modifier = Modifier
-//                        .padding(13.dp)
-//                        .fillMaxWidth(),
-//                    horizontalArrangement = Arrangement.SpaceBetween
-//                ) {
-//
-//                    Text(
-//                        text = "Predefined Meals",
-//                        color = Color.White,
-//                        fontFamily = poppinsFontFamily,
-//                        fontWeight = FontWeight.Black,
-//                        fontSize = 15.sp
-//                    )
-//
-//                    Text(
-//                        text = "200kCal",
-//                        color = Color.White,
-//                        fontFamily = poppinsFontFamily,
-//                        fontWeight = FontWeight.Black,
-//                        fontSize = 15.sp
-//                    )
-//                }
-//            }
-//        }
 
-        PredefinedMealsList { selectedMeal ->
-            // Save the selected meal under current user
-            val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return@PredefinedMealsList
-            val db = FirebaseFirestore.getInstance()
 
-            val mealData = mapOf(
-                "name" to selectedMeal.name,
-                "calories" to selectedMeal.calories,
-                "timestamp" to System.currentTimeMillis()
+        PredefinedMealsList { meal ->
+            selectedMeal.value = meal
+            showDialog.value = true
+        }
+
+        if (showDialog.value && selectedMeal.value != null) {
+            LogMealDialog(
+                meal = selectedMeal.value!!,
+                onDismiss = { showDialog.value = false },
+                onSubmit = { grams ->
+                    val caloriesConsumed = (selectedMeal.value!!.calories * grams) / 100f
+                    val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return@LogMealDialog
+                    val db = FirebaseFirestore.getInstance()
+
+                    val mealData = mapOf(
+                        "name" to selectedMeal.value!!.name,
+                        "calories" to caloriesConsumed,
+                        "timestamp" to System.currentTimeMillis()
+                    )
+
+                    db.collection("users").document(userId)
+                        .collection("logged_meals")
+                        .add(mealData)
+
+                    showDialog.value = false
+                }
             )
-
-            db.collection("users").document(userId)
-                .collection("logged_meals")
-                .add(mealData)
         }
     }
 }
