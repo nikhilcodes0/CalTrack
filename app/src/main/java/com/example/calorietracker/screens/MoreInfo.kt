@@ -18,8 +18,10 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AddTask
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Groups
+import androidx.compose.material.icons.filled.VolunteerActivism
 
 import androidx.compose.material.icons.rounded.CalendarMonth
 import androidx.compose.material.icons.rounded.CrisisAlert
@@ -61,6 +63,9 @@ import com.example.calorietracker.ROUTE_HOME
 import com.example.calorietracker.ROUTE_PROFILE
 import com.example.calorietracker.ui.theme.poppinsFontFamily
 import com.google.firebase.firestore.FirebaseFirestore
+import java.time.LocalDate
+import java.time.Period
+import java.time.format.DateTimeFormatter
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -77,6 +82,12 @@ fun MoreInfoScreen(navController: NavController, userId: String) {
     var height by remember { mutableStateOf("") }
     var calories by remember { mutableStateOf("") }
     var submitError by remember { mutableStateOf("") }
+    var activityExpanded by remember { mutableStateOf(false) }
+    val activityItems = listOf("Sedentary", "Lightly Active", "Moderately Active", "Very Active")
+    var selectedActivity by remember { mutableStateOf("Choose your Activity Level") }
+    var fitnessExpanded by remember { mutableStateOf(false) }
+    val fitnessItems = listOf("Lose Weight", "Maintain Weight", "Gain Muscle")
+    var selectedGoal by remember { mutableStateOf("Choose your Fitness Goal") }
 
 
 
@@ -98,9 +109,9 @@ fun MoreInfoScreen(navController: NavController, userId: String) {
                 contentDescription = "Blob",
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(290.dp)
-                    .scale(1.1f)
-                    .padding(top = 65.dp)
+                    .height(210.dp)
+                    .scale(0.8f)
+//                    .padding(top = 5.dp)
             )
 
             Image(
@@ -108,12 +119,12 @@ fun MoreInfoScreen(navController: NavController, userId: String) {
                 contentDescription = "Girl",
                 modifier = Modifier
                     .fillMaxWidth()
-                    .scale(2.2f)
-                    .padding(top = 40.dp)
+                    .scale(1.5f)
+//                    .padding(top = 10.dp)
             )
         }
 
-        Spacer(modifier = Modifier.height(80.dp))
+//        Spacer(modifier = Modifier.height(80.dp))
 
 
         Column(
@@ -199,6 +210,118 @@ fun MoreInfoScreen(navController: NavController, userId: String) {
 //                            modifier = Modifier.clip(RoundedCornerShape(0.dp)).padding(0.dp, 0.dp).background(Color.Transparent)
 
 
+                        )
+                    }
+                }
+            }
+
+            ExposedDropdownMenuBox(
+                expanded = activityExpanded,
+                onExpandedChange = { activityExpanded = it },
+                modifier = Modifier
+                    .padding(top = 14.dp)
+                    .wrapContentWidth()
+            ) {
+                TextField(
+                    value = selectedActivity,
+                    onValueChange = {},
+                    readOnly = true,
+                    modifier = Modifier
+                        .menuAnchor()
+                        .fillMaxWidth()
+                        .padding(35.dp, 5.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    trailingIcon = {
+                        Icon(Icons.Default.ArrowDropDown, contentDescription = "Dropdown Icon", tint = Color.Gray)
+                    },
+                    leadingIcon = {
+                        Icon(Icons.Default.VolunteerActivism, contentDescription = "Activity Icon", tint = Color.Gray)
+                    },
+                    colors = TextFieldDefaults.colors(
+                        focusedTextColor = if (selectedActivity == "Choose your Activity Level") Color.Gray else Color.White,
+                        unfocusedTextColor = if (selectedActivity == "Choose your Activity Level") Color.Gray else Color.White,
+                        focusedContainerColor = Color(0xFF3B4252),
+                        unfocusedContainerColor = Color(0xFF3B4252),
+                        cursorColor = Color.White,
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent
+                    ),
+                    textStyle = androidx.compose.ui.text.TextStyle(
+                        fontFamily = poppinsFontFamily,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Normal,
+                        color = if (selectedActivity == "Choose your Activity Level") Color.Gray else Color.White
+                    )
+                )
+
+                ExposedDropdownMenu(
+                    expanded = activityExpanded,
+                    onDismissRequest = { activityExpanded = false },
+                    modifier = Modifier.background(Color(0xFF3B4252), shape = RoundedCornerShape(0.dp))
+                ) {
+                    activityItems.forEach { item ->
+                        DropdownMenuItem(
+                            text = { Text(item, color = Color.White, fontFamily = poppinsFontFamily) },
+                            onClick = {
+                                selectedActivity = item
+                                activityExpanded = false
+                            }
+                        )
+                    }
+                }
+            }
+
+            ExposedDropdownMenuBox(
+                expanded = fitnessExpanded,
+                onExpandedChange = { fitnessExpanded = it },
+                modifier = Modifier
+                    .padding(top = 14.dp)
+                    .wrapContentWidth()
+            ) {
+                TextField(
+                    value = selectedGoal,
+                    onValueChange = {},
+                    readOnly = true,
+                    modifier = Modifier
+                        .menuAnchor()
+                        .fillMaxWidth()
+                        .padding(35.dp, 5.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    trailingIcon = {
+                        Icon(Icons.Default.ArrowDropDown, contentDescription = "Dropdown Icon", tint = Color.Gray)
+                    },
+                    leadingIcon = {
+                        Icon(Icons.Default.AddTask, contentDescription = "Goal Icon", tint = Color.Gray)
+                    },
+                    colors = TextFieldDefaults.colors(
+                        focusedTextColor = if (selectedGoal == "Choose your Fitness Goal") Color.Gray else Color.White,
+                        unfocusedTextColor = if (selectedGoal == "Choose your Fitness Goal") Color.Gray else Color.White,
+                        focusedContainerColor = Color(0xFF3B4252),
+                        unfocusedContainerColor = Color(0xFF3B4252),
+                        cursorColor = Color.White,
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent
+                    ),
+                    textStyle = androidx.compose.ui.text.TextStyle(
+                        fontFamily = poppinsFontFamily,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Normal,
+                        color = if (selectedGoal == "Choose your Fitness Goal") Color.Gray else Color.White
+                    )
+                )
+
+                ExposedDropdownMenu(
+                    expanded = fitnessExpanded,
+                    onDismissRequest = { fitnessExpanded = false },
+                    modifier = Modifier.background(Color(0xFF3B4252), shape = RoundedCornerShape(0.dp))
+                ) {
+                    fitnessItems.forEach { item ->
+                        DropdownMenuItem(
+                            text = { Text(item, color = Color.White, fontFamily = poppinsFontFamily) },
+                            onClick = {
+                                selectedGoal = item
+                                fitnessExpanded = false
+                            }
                         )
                     }
                 }
@@ -403,21 +526,45 @@ fun MoreInfoScreen(navController: NavController, userId: String) {
                     .padding(top = 15.dp)
 
             )
+            fun calculateBMR(gender: String, weight: Double, height: Double, age: Int): Double {
+                return if (gender.lowercase() == "male") {
+                    10 * weight + 6.25 * height - 5 * age + 5
+                } else {
+                    10 * weight + 6.25 * height - 5 * age - 161
+                }
+            }
+
+            fun calculateAge(dob: String): Int {
+                return try {
+                    val formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy")
+                    val birthDate = LocalDate.parse(dob, formatter)
+                    val currentDate = LocalDate.now()
+                    Period.between(birthDate, currentDate).years
+                } catch (e: Exception) {
+                    -1 // Return -1 in case of invalid DOB format
+                }
+            }
+
 
             Button(
                 onClick = {
-                    if (selectedText.isNotEmpty() && weight.isNotEmpty() && dob.isNotEmpty() && height.isNotEmpty()) {
+                    if (selectedText.isNotEmpty() && weight.isNotEmpty() && dob.isNotEmpty() && height.isNotEmpty() && calories.isNotEmpty() && selectedGoal.isNotEmpty() && selectedActivity.isNotEmpty()) {
+                        val bmr = calculateBMR(selectedText, weight.toDouble(), height.toDouble(), calculateAge(dob).toInt())
                         val userMap = mapOf(
                             "gender" to selectedText,
                             "weight" to weight,
                             "dob" to dob,
                             "height" to height,
-                            "calories" to calories
+                            "calories" to calories,
+                            "activity" to selectedActivity,
+                            "goal" to selectedGoal,
+                            "bmr" to bmr
                         )
 
                         db.collection("users").document(userId)
                             .update(userMap)
                             .addOnSuccessListener {
+
                                 navController.navigate("$ROUTE_HOME/$userId") // Redirect to profile after saving
                             }
                             .addOnFailureListener { e ->

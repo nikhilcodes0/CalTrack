@@ -23,6 +23,10 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -110,6 +114,8 @@ fun ProfileScreen(navController: NavController, userId: String) {
     val height = userData?.get("height") as? String ?: "N/A"
     val calories = userData?.get("calories") as? String ?: "N/A"
     val gender = userData?.get("gender") as? String ?: "N/A"
+    val activity = userData?.get("activity") as? String ?: "N/A"
+    val goal = userData?.get("goal") as? String ?: "N/A"
 
 
     Column(
@@ -139,7 +145,7 @@ fun ProfileScreen(navController: NavController, userId: String) {
                 contentDescription = "Blob",
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(350.dp)
+                    .height(270.dp)
                     .padding(top = 40.dp)
             )
 
@@ -358,6 +364,79 @@ fun ProfileScreen(navController: NavController, userId: String) {
                 }
 
             }
+
+            Row (
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(30.dp, 10.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(12.dp)) // Apply rounded corners
+                        .background(Color(0xFF3B4252)) // Same background as TextField
+                        .padding(18.dp)
+                        .width(160.dp)
+                        .wrapContentSize(Alignment.Center)
+                    ,
+
+
+
+
+                    ) {
+                    Text(
+                        text = goal,
+                        fontFamily = poppinsFontFamily,
+                        fontWeight = FontWeight.Black,
+                        color = Color.White,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                    )
+
+                    Text(
+                        text = " Goal",
+                        fontFamily = poppinsFontFamily,
+                        fontWeight = FontWeight.Black,
+
+                        color = Color.Gray,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .padding(top = 30.dp)
+                            .fillMaxWidth()
+                    )
+                }
+
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(12.dp)) // Apply rounded corners
+                        .background(Color(0xFF3B4252)) // Same background as TextField
+                        .padding(18.dp)
+                        .width(160.dp)
+                        .wrapContentSize(Alignment.Center)
+                ) {
+                    Text(
+                        text = activity,
+                        fontFamily = poppinsFontFamily,
+                        fontWeight = FontWeight.Black,
+                        color = Color.White,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    Text(
+                        text = "Activity",
+                        fontFamily = poppinsFontFamily,
+                        fontWeight = FontWeight.Black,
+                        color = Color.Gray,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .padding(top = 30.dp)
+                            .fillMaxWidth()
+                    )
+                }
+
+            }
         }
 
         Button(
@@ -419,6 +498,7 @@ fun ProfileScreen(navController: NavController, userId: String) {
 
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditProfileDialog(
     userData: Map<String, Any>?, // e.g., from Firestore
@@ -429,6 +509,14 @@ fun EditProfileDialog(
     var weight by remember { mutableStateOf(userData?.get("weight") as? String ?: "") }
     var height by remember { mutableStateOf(userData?.get("height")as? String  ?: "") }
     var calories by remember { mutableStateOf(userData?.get("calories")as? String  ?: "") }
+    var activity by remember { mutableStateOf(userData?.get("activity")as? String  ?: "") }
+    var goal by remember { mutableStateOf(userData?.get("goal")as? String  ?: "") }
+
+    val goalOptions = listOf("Lose Weight", "Maintain Weight", "Gain Weight")
+    val activityOptions = listOf("Sedentary", "Lightly Active", "Moderately Active", "Very Active")
+
+    var expandedGoal by remember { mutableStateOf(false) }
+    var expandedActivity by remember { mutableStateOf(false) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -466,6 +554,69 @@ fun EditProfileDialog(
 
                     modifier = Modifier.fillMaxWidth()
                 )
+
+                ExposedDropdownMenuBox(
+                    expanded = expandedGoal,
+                    onExpandedChange = { expandedGoal = !expandedGoal }
+                ) {
+                    OutlinedTextField(
+                        value = goal,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Goal", color = Color.White) },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedGoal) },
+                        modifier = Modifier
+                            .menuAnchor()
+                            .fillMaxWidth()
+                    )
+                    ExposedDropdownMenu(
+                        expanded = expandedGoal,
+                        onDismissRequest = { expandedGoal = false }
+                    ) {
+                        goalOptions.forEach {
+                            DropdownMenuItem(
+                                text = { Text(it) },
+                                onClick = {
+                                    goal = it
+                                    expandedGoal = false
+                                }
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Activity Dropdown
+                ExposedDropdownMenuBox(
+                    expanded = expandedActivity,
+                    onExpandedChange = { expandedActivity = !expandedActivity }
+                ) {
+                    OutlinedTextField(
+                        value = activity,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Activity Level", color = Color.White) },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedActivity) },
+                        modifier = Modifier
+                            .menuAnchor()
+                            .fillMaxWidth()
+                    )
+                    ExposedDropdownMenu(
+                        expanded = expandedActivity,
+                        onDismissRequest = { expandedActivity = false }
+                    ) {
+                        activityOptions.forEach {
+                            DropdownMenuItem(
+                                text = { Text(it) },
+                                onClick = {
+                                    activity = it
+                                    expandedActivity = false
+                                }
+                            )
+                        }
+                    }
+                }
             }
         },
         confirmButton = {
@@ -477,7 +628,9 @@ fun EditProfileDialog(
                     "username" to username,
                     "weight" to weight,
                     "height" to height,
-                    "calories" to calories
+                    "calories" to calories,
+                    "goal" to goal,
+                    "activity" to activity
                 )
 
                 userRef.update(updatedData)

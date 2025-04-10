@@ -52,6 +52,18 @@ import kotlin.math.cos
 import kotlin.math.sin
 
 
+fun calculateTDEE(bmr: Float, activityLevel: String): Double {
+    val multiplier = when (activityLevel) {
+        "Sedentary" -> 1.2
+        "Lightly active" -> 1.375
+        "Moderately active" -> 1.55
+        "Very active" -> 1.725
+        else -> 1.2
+    }
+    return bmr * multiplier
+}
+
+
 @SuppressLint("DefaultLocale")
 
 @Composable
@@ -129,6 +141,10 @@ fun HomePage(navController: NavController, userId: String) {
 
     var progress by remember { mutableFloatStateOf(0f) }
 
+    var bmr by remember { mutableFloatStateOf(0f) }
+    var activityLevel by remember { mutableStateOf("") }
+
+
 // Get today's start timestamp
     LaunchedEffect(currentUserId, goal) {
         val calendar = Calendar.getInstance().apply {
@@ -169,6 +185,14 @@ fun HomePage(navController: NavController, userId: String) {
 
                 Log.d("BMI_INPUTS", "Weight: $weight, Height: $heightCm")
                 val heightM = heightCm / 100f
+
+                val activityLevelString = userData?.get("activity") as? String
+                activityLevel = activityLevelString ?: "Sedentary"
+                Log.d("BMI_ACTIVITY", "Activity Level: $activityLevel")
+
+                val bmrValue = userData?.get("bmr") as? Double
+                bmr = bmrValue?.toFloat() ?: 0f
+                Log.d("BMI_BMR", "BMR: $bmr")
 
                 val caloriesString = userData?.get("calories") as? String
                 val caloriesGoal = caloriesString?.toFloatOrNull() ?: 2000f
@@ -336,6 +360,46 @@ fun HomePage(navController: NavController, userId: String) {
                 )
                 Text(
                     text = "${(progress * goal).toInt()} / ${goal.toInt()} kCal",
+                    fontFamily = poppinsFontFamily,
+                    fontWeight = FontWeight.Black,
+                    color = Color(0xFF92A3FD),
+                    fontSize = 13.sp,
+                    modifier = Modifier.padding(bottom = 15.dp)
+                )
+
+                LinearProgressIndicator(
+                    progress = { progress },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(15.dp)
+                        .clip(RoundedCornerShape(50)), // Rounded edges
+                    color = Color(0xFF88C0D0),        // Filled color
+                    trackColor = Color(0xFF3B4252),   // Unfilled color
+                    strokeCap = StrokeCap.Round,
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(23.dp))
+
+        Box(
+            modifier = Modifier
+                .clip(RoundedCornerShape(10.dp))
+                .background(Color(0xFF4C566A))
+                .fillMaxWidth()
+                .padding(20.dp)
+        ) {
+            Column {
+                Text(
+                    text = "TDEE",
+                    fontFamily = poppinsFontFamily,
+                    fontWeight = FontWeight.Black,
+                    color = Color.White,
+                    fontSize = 20.sp,
+                    modifier = Modifier.padding(bottom = 2.dp)
+                )
+                Text(
+                    text = "${(progress * goal).toInt()} / ${calculateTDEE(bmr, activityLevel)} kCal",
                     fontFamily = poppinsFontFamily,
                     fontWeight = FontWeight.Black,
                     color = Color(0xFF92A3FD),
