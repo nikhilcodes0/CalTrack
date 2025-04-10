@@ -1,11 +1,15 @@
 package com.example.calorietracker.screens
 
+import android.R.attr.bottom
+import android.util.Log
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -15,8 +19,12 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -42,6 +50,9 @@ import com.example.calorietracker.ui.theme.poppinsFontFamily
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.text.input.KeyboardType
+import com.google.firebase.Firebase
+import com.google.firebase.firestore.firestore
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.Period
@@ -66,6 +77,8 @@ fun ProfileScreen(navController: NavController, userId: String) {
 
     var userData by remember { mutableStateOf<Map<String, Any>?>(null) }
     var error by remember { mutableStateOf<String?>(null) }
+    var showEditDialog by remember { mutableStateOf(false) }
+
 
 
 
@@ -95,6 +108,9 @@ fun ProfileScreen(navController: NavController, userId: String) {
     val email = userData?.get("email") as? String ?: "N/A"
     val weight = userData?.get("weight") as? String ?: "N/A"
     val height = userData?.get("height") as? String ?: "N/A"
+    val calories = userData?.get("calories") as? String ?: "N/A"
+    val gender = userData?.get("gender") as? String ?: "N/A"
+
 
     Column(
         modifier = Modifier
@@ -123,8 +139,8 @@ fun ProfileScreen(navController: NavController, userId: String) {
                 contentDescription = "Blob",
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(400.dp)
-                    .padding(top = 50.dp)
+                    .height(350.dp)
+                    .padding(top = 40.dp)
             )
 
             Image(
@@ -132,9 +148,9 @@ fun ProfileScreen(navController: NavController, userId: String) {
                 contentDescription = "Man",
                 modifier = Modifier
                     .fillMaxWidth()
-                    .scale(3.3f)
+                    .scale(2.8f)
                     .padding(end = 30.dp)
-                    .padding(top = 10.dp)
+                    .padding(top = 5.dp)
             )
 
             Image(
@@ -142,14 +158,15 @@ fun ProfileScreen(navController: NavController, userId: String) {
                 contentDescription = "Girl",
                 modifier = Modifier
                     .fillMaxWidth()
-                    .scale(3.3f)
+                    .scale(2.8f)
                     .padding(start = 25.dp)
-                    .padding(top = 10.dp)
+                    .padding(top = 5.dp)
             )
         }
 
         Column (
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.padding(bottom = 10.dp)
         ){
             Text(
                 text = username,
@@ -184,7 +201,7 @@ fun ProfileScreen(navController: NavController, userId: String) {
                         .clip(RoundedCornerShape(12.dp)) // Apply rounded corners
                         .background(Color(0xFF3B4252)) // Same background as TextField
                         .padding(18.dp)
-                        .width(60.dp)
+                        .width(80.dp)
                         .wrapContentSize(Alignment.Center)
 
 
@@ -214,7 +231,7 @@ fun ProfileScreen(navController: NavController, userId: String) {
                         .clip(RoundedCornerShape(12.dp)) // Apply rounded corners
                         .background(Color(0xFF3B4252)) // Same background as TextField
                         .padding(18.dp)
-                        .width(60.dp)
+                        .width(80.dp)
                         .wrapContentSize(Alignment.Center)
                 ) {
                     Text(
@@ -242,7 +259,7 @@ fun ProfileScreen(navController: NavController, userId: String) {
                         .clip(RoundedCornerShape(12.dp)) // Apply rounded corners
                         .background(Color(0xFF3B4252)) // Same background as TextField
                         .padding(18.dp) // Padding inside the shape
-                        .width(60.dp)
+                        .width(80.dp)
                         .wrapContentSize(Alignment.Center)
                 ) {
 
@@ -268,7 +285,110 @@ fun ProfileScreen(navController: NavController, userId: String) {
                     )
                 }
             }
+
+            Row (
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(30.dp, 10.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(12.dp)) // Apply rounded corners
+                        .background(Color(0xFF3B4252)) // Same background as TextField
+                        .padding(18.dp)
+                        .width(160.dp)
+                        .wrapContentSize(Alignment.Center)
+                        ,
+
+
+
+
+                ) {
+                    Text(
+                        text = calories + " kCal",
+                        fontFamily = poppinsFontFamily,
+                        fontWeight = FontWeight.Black,
+                        color = Color.White,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                    )
+
+                    Text(
+                        text = "Calories Goal",
+                        fontFamily = poppinsFontFamily,
+                        fontWeight = FontWeight.Black,
+
+                        color = Color.Gray,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .padding(top = 30.dp)
+                            .fillMaxWidth()
+                    )
+                }
+
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(12.dp)) // Apply rounded corners
+                        .background(Color(0xFF3B4252)) // Same background as TextField
+                        .padding(18.dp)
+                        .width(160.dp)
+                        .wrapContentSize(Alignment.Center)
+                ) {
+                    Text(
+                        text = gender,
+                        fontFamily = poppinsFontFamily,
+                        fontWeight = FontWeight.Black,
+                        color = Color.White,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.width(50.dp)
+                    )
+
+                    Text(
+                        text = "Gender",
+                        fontFamily = poppinsFontFamily,
+                        fontWeight = FontWeight.Black,
+                        color = Color.Gray,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .padding(top = 30.dp)
+                            .width(60.dp)
+                    )
+                }
+
+            }
         }
+
+        Button(
+            onClick = {
+                showEditDialog = true
+            },
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color.Transparent
+            ),
+            border = BorderStroke(1.dp, Color(0xFF4C566A)),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(30.dp, 0.dp)
+        ) {
+            Text(
+                text = "Edit Profile",
+                fontSize = 16.sp,
+                fontFamily = poppinsFontFamily,
+                fontWeight = FontWeight.Black,
+                color = Color(0xFF4C566A) // Match the border color
+            )
+        }
+
+        if (showEditDialog) {
+            EditProfileDialog(
+                userData = userData,
+                onDismiss = { showEditDialog = false },
+                userId = auth.currentUser?.uid ?: ""
+            )
+        }
+
 
         Button(
             onClick = {
@@ -287,7 +407,8 @@ fun ProfileScreen(navController: NavController, userId: String) {
                 text = "Log Out",
                 fontSize = 16.sp,
                 fontFamily = poppinsFontFamily,
-                fontWeight = FontWeight.Black
+                fontWeight = FontWeight.Black,
+                color = Color.White
             )
         }
     }
@@ -296,6 +417,102 @@ fun ProfileScreen(navController: NavController, userId: String) {
 
 
 
+}
+
+@Composable
+fun EditProfileDialog(
+    userData: Map<String, Any>?, // e.g., from Firestore
+    onDismiss: () -> Unit,
+    userId: String
+) {
+    var username by remember { mutableStateOf(userData?.get("username") as? String ?: "") }
+    var weight by remember { mutableStateOf(userData?.get("weight") as? String ?: "") }
+    var height by remember { mutableStateOf(userData?.get("height")as? String  ?: "") }
+    var calories by remember { mutableStateOf(userData?.get("calories")as? String  ?: "") }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Edit Profile", color = Color.White) },
+        text = {
+            Column {
+                OutlinedTextField(
+                    value = username,
+                    onValueChange = { username = it },
+                    label = { Text(text = "Username", color = Color.White) },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = weight,
+                    onValueChange = { weight = it },
+                    label = { Text(text = "Weight (kg)", color = Color.White) },
+
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = height,
+                    onValueChange = { height = it },
+                    label = { Text(text = "Height (cm)", color = Color.White) },
+
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+
+                OutlinedTextField(
+                    value = calories,
+                    onValueChange = { calories = it },
+                    label = { Text(text = "Calorie Goal (kCal)", color = Color.White) },
+
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        },
+        confirmButton = {
+            Button(onClick = {
+                val db = Firebase.firestore
+                val userRef = db.collection("users").document(userId)
+
+                val updatedData = mapOf(
+                    "username" to username,
+                    "weight" to weight,
+                    "height" to height,
+                    "calories" to calories
+                )
+
+                userRef.update(updatedData)
+                    .addOnSuccessListener {
+                        Log.d("Firestore", "User updated")
+                        onDismiss()
+                    }
+                    .addOnFailureListener {
+                        Log.e("Firestore", "Error updating", it)
+                    }
+            }
+
+            ) {
+                Text("Save", color = Color.White)
+            }
+        },
+        dismissButton = {
+            OutlinedButton(onClick = onDismiss) {
+                Text("Cancel", color = Color.White)
+            }
+        },
+        containerColor = Color(0xFF3B4252),
+        titleContentColor = Color.White,
+        textContentColor = Color.White
+    )
+}
+
+
+
+
+@Preview
+@Composable
+fun ProfileScreenPreview() {
+    val navController = rememberNavController()
+    ProfileScreen(navController, "userId")
 }
 
 

@@ -51,6 +51,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.calorietracker.screens.BottomNavBar
+import com.example.calorietracker.screens.HistoryScreen
 import com.example.calorietracker.screens.HomePage
 import com.example.calorietracker.screens.LoginScreen
 import com.example.calorietracker.screens.Meals
@@ -72,6 +73,7 @@ const val ROUTE_HOME = "home"
 const val ROUTE_MEALS = "meals"
 const val ROUTE_PREDEFINED = "predefined"
 const val ROUTE_USERMEALS = "usermeals"
+const val ROUTE_HISTORY = "mealshistory"
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -130,6 +132,7 @@ class MainActivity : ComponentActivity() {
                         }
                         composable(ROUTE_PREDEFINED) { PredefinedMeals() }
                         composable(ROUTE_USERMEALS) { UserMeals() }
+                        composable(ROUTE_HISTORY) { HistoryScreen() }
                     }
                 }
             }

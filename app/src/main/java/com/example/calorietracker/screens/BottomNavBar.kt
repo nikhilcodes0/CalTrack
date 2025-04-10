@@ -13,6 +13,7 @@ import com.example.calorietracker.ROUTE_MEALS
 import com.example.calorietracker.ROUTE_PROFILE
 import com.google.firebase.auth.FirebaseAuth
 import androidx.compose.runtime.getValue
+import com.example.calorietracker.ROUTE_HISTORY
 
 
 @Composable
@@ -20,7 +21,8 @@ fun BottomNavBar(navController: NavHostController) {
     val items = listOf(
         BottomNavItem.Home,
         BottomNavItem.Meals,
-        BottomNavItem.Profile
+        BottomNavItem.Profile,
+        BottomNavItem.History
     )
 
     NavigationBar(
@@ -41,6 +43,7 @@ fun BottomNavBar(navController: NavHostController) {
                         is BottomNavItem.Home -> "$ROUTE_HOME/$userId"
                         is BottomNavItem.Profile -> "$ROUTE_PROFILE/$userId"
                         is BottomNavItem.Meals -> "$ROUTE_MEALS/$userId"
+                        is BottomNavItem.History -> ROUTE_HISTORY
                     }
                     navController.navigate(fullRoute) {
                         popUpTo(navController.graph.startDestinationId) { saveState = true }

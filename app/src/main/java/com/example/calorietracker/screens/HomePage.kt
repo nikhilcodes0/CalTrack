@@ -46,6 +46,7 @@ import com.example.calorietracker.ROUTE_MEALS
 import com.example.calorietracker.ui.theme.poppinsFontFamily
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.tasks.await
 import java.util.Calendar
 import kotlin.math.cos
 import kotlin.math.sin
@@ -129,7 +130,7 @@ fun HomePage(navController: NavController, userId: String) {
     var progress by remember { mutableFloatStateOf(0f) }
 
 // Get today's start timestamp
-    LaunchedEffect(Unit) {
+    LaunchedEffect(currentUserId, goal) {
         val calendar = Calendar.getInstance().apply {
             set(Calendar.HOUR_OF_DAY, 0)
             set(Calendar.MINUTE, 0)
@@ -148,7 +149,8 @@ fun HomePage(navController: NavController, userId: String) {
                     totalCalories += (doc.getLong("calories") ?: 0L).toInt()
                 }
 
-                progress = (totalCalories / goal).coerceIn(0f, 1f) // Safe clamp between 0 and 1
+                progress = (totalCalories.toFloat() / goal).coerceIn(0f, 1f)
+
             }
     }
 
@@ -158,33 +160,34 @@ fun HomePage(navController: NavController, userId: String) {
     var bmi by remember { mutableStateOf<Float?>(null) }
     var calories by remember { mutableStateOf<String?>(null) }
     LaunchedEffect(currentUserId) {
-        if (currentUserId.isNotEmpty()) {
-            firestore.collection("users").document(userId).get()
-                .addOnSuccessListener { document ->
-                    if (document.exists()) {
-                        userData = document.data
-                        val weight = (userData?.get("weight") as? Number)?.toFloat() ?: 0f
-                        val heightCm = (userData?.get("height") as? Number)?.toFloat() ?: 0f
-                        Log.d("BMI_CALC", "Weight: $weight, Height: $heightCm")
-                        val caloriesString = userData?.get("calories") as? String
-                        val caloriesGoal = caloriesString?.toFloatOrNull() ?: 2000f
-                        goal = caloriesGoal
+        try {
+            val document = firestore.collection("users").document(userId).get().await()
+            if (document.exists()) {
+                userData = document.data
+                val weight = (userData?.get("weight") as? String)?.toFloatOrNull() ?: 0f
+                val heightCm = (userData?.get("height") as? String)?.toFloatOrNull() ?: 0f
 
+                Log.d("BMI_INPUTS", "Weight: $weight, Height: $heightCm")
+                val heightM = heightCm / 100f
 
+                val caloriesString = userData?.get("calories") as? String
+                val caloriesGoal = caloriesString?.toFloatOrNull() ?: 2000f
+                goal = caloriesGoal
 
-
-
-                    } else {
-                        error = "User data not found!"
-                    }
-                }
-                .addOnFailureListener { e ->
-                    error = e.message ?: "Failed to load user data!"
-                }
-        } else {
-            error = "User not logged in!"
+                val calculatedBMI = if (heightM > 0) weight / (heightM * heightM) else 0f
+                bmi = calculatedBMI
+            } else {
+                error = "User data not found!"
+            }
+        } catch (e: Exception) {
+            error = e.message ?: "Failed to load user data!"
         }
     }
+    LaunchedEffect(bmi) {
+        Log.d("BMI_LOG", "BMI value is: $bmi")
+
+    }
+
 
 
 
@@ -252,8 +255,9 @@ fun HomePage(navController: NavController, userId: String) {
                 }
 
 
-                val bmi = 25.7f
-                BMIPieChart(bmi = bmi, modifier = Modifier.padding(start = 60.dp))
+               if(bmi != null){
+                BMIPieChart(bmi = bmi!!, modifier = Modifier.padding(start = 60.dp))
+               }
 
 
             }
